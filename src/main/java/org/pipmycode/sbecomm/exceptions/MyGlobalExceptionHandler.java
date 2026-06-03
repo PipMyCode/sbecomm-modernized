@@ -2,13 +2,11 @@ package org.pipmycode.sbecomm.exceptions;
 
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,16 +14,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class MyGlobalExceptionHandler {
 
-    @ExceptionHandler(APIException.class)
-    public ResponseEntity<Map<String, String>> handleAPIException(APIException e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", e.getMessage());
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException e) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields");
+        problemDetail.setTitle("Validation Error");
+
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
@@ -33,23 +28,22 @@ public class MyGlobalExceptionHandler {
             errors.putIfAbsent(fieldName, message);
         });
 
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        problemDetail.setProperty("invalid_fields", errors);
+        return problemDetail;
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", e.getMessage());
-
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    public ProblemDetail handleResourceNotFoundException(ResourceNotFoundException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("Resource Not Found");
+        return problemDetail;
 
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", e.getMessage());
-
-        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    public ProblemDetail handleResourceAlreadyExistsException(ResourceAlreadyExistsException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problemDetail.setTitle("Resource Conflict");
+        return problemDetail;
     }
 }
