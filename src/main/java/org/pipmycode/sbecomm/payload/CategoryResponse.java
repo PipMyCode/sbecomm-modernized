@@ -1,14 +1,13 @@
 package org.pipmycode.sbecomm.payload;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CategoryResponse {
-    private List<CategoryDTO> content;
-}
+public record CategoryResponse (
+        List<CategoryDTO> content,
+        Integer pageNumber,
+        Integer pageSize,
+        Long totalElements,
+        Integer totalPage,
+        boolean lastPage
+) {}
+
