@@ -1,77 +1,70 @@
 package org.pipmycode.sbecomm.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.pipmycode.sbecomm.exceptions.APIException;
 import org.pipmycode.sbecomm.exceptions.ResourceAlreadyExistsException;
+import org.pipmycode.sbecomm.exceptions.ResourceNotFoundException;
 import org.pipmycode.sbecomm.model.Category;
 import org.pipmycode.sbecomm.payload.CategoryDTO;
 import org.pipmycode.sbecomm.payload.CategoryResponse;
 import org.pipmycode.sbecomm.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.pipmycode.sbecomm.exceptions.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
-
     private final CategoryRepository categoryRepository;
-    private final ModelMapper modelMapper;
 
     @Override
-    public CategoryResponse getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-
-        if (categories.isEmpty()) {
-            throw new APIException("No categories have been created yet!");
-        }
-
-        List<CategoryDTO> categoryDTOS = categories.stream()
-                .map(category -> modelMapper.map(category, CategoryDTO.class))
+    public CategoryResponse getAllCategories(Pageable pageable) {
+        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        List<CategoryDTO> categoryDTOS = categoryPage.getContent().stream()
+                .map(category -> new CategoryDTO(category.getCategoryId(), category.getCategoryName()))
                 .toList();
 
-        CategoryResponse categoriesResponse = new CategoryResponse();
-        categoriesResponse.setContent(categoryDTOS);
-        return categoriesResponse;
+        return new CategoryResponse(
+                categoryDTOS,
+                categoryPage.getNumber(),
+                categoryPage.getSize(),
+                categoryPage.getTotalElements(),
+                categoryPage.getTotalPages(),
+                categoryPage.isLast()
+        );
     }
 
     @Override
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-        Category existingCategory = categoryRepository.findByCategoryName(categoryDTO.getCategoryName());
-
-        if (existingCategory != null) {
-            throw new ResourceAlreadyExistsException("Category with name: " + categoryDTO.getCategoryName() + " already exists!");
+        if (categoryRepository.existsByCategoryName(categoryDTO.categoryName())) {
+            throw new ResourceAlreadyExistsException("Category with name: " + categoryDTO.categoryName() + " already exists!");
         }
-        Category category = modelMapper.map(categoryDTO, Category.class);
-        Category savedCategory = categoryRepository.save(category);
-        return modelMapper.map(savedCategory, CategoryDTO.class);
-    }
 
-    @Override
-    public String deleteCategory(Long categoryId) {
-        Category existingCategory = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with categoryId: " + categoryId + " not found!"));
-        categoryRepository.delete(existingCategory);
-        return "Category with categoryId: " + categoryId + " deleted successfully!";
+        Category category = new Category();
+        category.setCategoryName(categoryDTO.categoryName());
+
+        Category savedCategory = categoryRepository.save(category);
+        return new CategoryDTO(savedCategory.getCategoryId(), savedCategory.getCategoryName());
     }
 
     @Override
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
         Category existingCategory = categoryRepository.findById(categoryId)
-                // basically means return an optional category cause id might not exist :)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with categoryId: " + categoryId + " not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id: " + categoryId + " not found!"));
 
-        existingCategory.setCategoryName(categoryDTO.getCategoryName());
+        existingCategory.setCategoryName(categoryDTO.categoryName());
+
         Category updatedCategory = categoryRepository.save(existingCategory);
-        return modelMapper.map(updatedCategory, CategoryDTO.class);
+        return new CategoryDTO(updatedCategory.getCategoryId(), updatedCategory.getCategoryName());
+    }
+
+    @Override
+    public void deleteCategory(Long categoryId) {
+        Category existingCategory = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id: " + categoryId + " not found!"));
+
+        categoryRepository.delete(existingCategory);
     }
 }
