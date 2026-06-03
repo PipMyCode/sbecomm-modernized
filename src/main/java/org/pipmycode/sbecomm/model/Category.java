@@ -1,26 +1,35 @@
 package org.pipmycode.sbecomm.model;
-//model
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Entity(name = "categories")
-@Data
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.Objects;
+
+@Entity
+@Table(name = "categories")
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
+
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
     private Long categoryId;
 
-    @NotBlank
-    @Size(min =5, message = "Category name must be at least 5 characters long")
+    @Column(name = "category_name", nullable = false, unique = true, length = 50)
     private String categoryName;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Category category = (Category) o;
+        return categoryId != null && Objects.equals(categoryId, category.categoryId);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
