@@ -39,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
         if (categoryRepository.existsByCategoryName(categoryDTO.categoryName())) {
-            throw new ResourceAlreadyExistsException("Category with name: " + categoryDTO.categoryName() + " already exists!");
+            throw new ResourceAlreadyExistsException("Category", "categoryName", categoryDTO.categoryName());
         }
 
         Category category = new Category();
@@ -52,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Long categoryId) {
         Category existingCategory = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id: " + categoryId + " not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", categoryId));
 
         existingCategory.setCategoryName(categoryDTO.categoryName());
 
@@ -63,7 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(Long categoryId) {
         Category existingCategory = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id: " + categoryId + " not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", categoryId));
 
         categoryRepository.delete(existingCategory);
     }
