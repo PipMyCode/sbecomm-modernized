@@ -23,7 +23,11 @@ public class MyGlobalExceptionHandler {
 
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
+
+            String fieldName = error instanceof FieldError ?
+                               ((FieldError) error).getField() :
+                               error.getObjectName();
+
             String message = error.getDefaultMessage();
             errors.putIfAbsent(fieldName, message);
         });
@@ -36,6 +40,10 @@ public class MyGlobalExceptionHandler {
     public ProblemDetail handleResourceNotFoundException(ResourceNotFoundException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         problemDetail.setTitle("Resource Not Found");
+
+        problemDetail.setProperty("resourceName", e.getResourceName());
+        problemDetail.setProperty("fieldName", e.getFieldName());
+        problemDetail.setProperty("fieldValue", e.getFieldValue());
         return problemDetail;
 
     }
@@ -44,6 +52,11 @@ public class MyGlobalExceptionHandler {
     public ProblemDetail handleResourceAlreadyExistsException(ResourceAlreadyExistsException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
         problemDetail.setTitle("Resource Conflict");
+
+        problemDetail.setProperty("resourceName", e.getResourceName());
+        problemDetail.setProperty("fieldName", e.getFieldName());
+        problemDetail.setProperty("fieldValue", e.getFieldValue());
+
         return problemDetail;
     }
 }
