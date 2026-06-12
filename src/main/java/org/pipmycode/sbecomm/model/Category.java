@@ -3,6 +3,9 @@ package org.pipmycode.sbecomm.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -32,4 +35,7 @@ public class Category {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Product> products = new ArrayList<>();
 }
