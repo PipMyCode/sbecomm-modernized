@@ -116,8 +116,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-
-
     private ProductDTO mapToDTO(Product product) {
         return new ProductDTO(
                 product.getProductId(),
