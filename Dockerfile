@@ -21,7 +21,7 @@ FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 # Create a non-root user and group for security
-RUN groupadd -r spring && useradd -r -g spring spring
+RUN addgroup -S spring && adduser -S spring -G spring
 
 # Copy the built artifact from the build stage
 COPY --from=build /app/target/*.jar app.jar
