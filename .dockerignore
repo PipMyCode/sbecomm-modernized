@@ -1,7 +1,6 @@
 target/
 .git/
 .idea/
-.mvn/
 *.md
 .env
 Dockerfile
