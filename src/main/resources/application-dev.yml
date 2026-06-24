@@ -12,8 +12,8 @@ spring:
 app:
   stripe:
     # Local dev placeholders (never commit actual dev tokens, rely on local ENV variables if possible)
-    secret-key: ${STRIPE_SECRET_KEY_DEV:sk_test_placeholder}
-    webhook-secret: ${STRIPE_WEBHOOK_SECRET_DEV:whsec_placeholder}
+    secret-key: ${STRIPE_SECRET_KEY_DEV:dummy_stripe_key}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET_DEV:dummy_whsec_key}
 
 logging:
   level:
