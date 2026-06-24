@@ -137,7 +137,7 @@ Built-in production monitoring using the **TICK/Prometheus** stack:
 
 ### Prerequisites
 - Docker & Docker Compose
-- Java 21 (If running outside of Docker)
+- Java 25 (If running outside of Docker)
 
 ### Running the Application
 
