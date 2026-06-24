@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: modernized-ecomm
+  
+  datasource:
+    # 12-Factor App: Externalize connection details via Environment Variables
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ecomm_db}
+    username: ${DB_USER:admin}
+    password: ${DB_PASSWORD:password123}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      # Production safeguard: Never auto-update schema, only validate
+      ddl-auto: validate
+    # Production safeguard: Disable SQL logging to prevent leaking PII/secure data to logs
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # The Keycloak Realm URL where the public keys (JWKS) can be fetched
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/ecomm-realm}
+
+springdoc:
+  swagger-ui:
+    oauth:
+      client-id: ${SWAGGER_OAUTH_CLIENT_ID:swagger-ui}
+      use-pkce-with-authorization-code-grant: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# Custom Configuration Block for External Adapters
+app:
+  stripe:
+    # 12-Factor App: Strict enforcement of no hardcoded secrets
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+
+# Actuator & Observability
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    health:
+      probes:
+        # Crucial for Kubernetes Liveness/Readiness probes
+        enabled: true
+  metrics:
+    tags:
+      application: sbecomm-api

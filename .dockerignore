@@ -1,0 +1,9 @@
+target/
+.git/
+.idea/
+.mvn/
+*.md
+.env
+Dockerfile
+docker-compose.yml
+test_output.log

@@ -1,0 +1,38 @@
+### 1. Create a Category
+POST http://localhost:8080/api/admin/categories
+Content-Type: application/json
+
+{
+  "categoryName": "Developer Hardware"
+}
+
+### 2. Create the MacBook Pro Product (Assuming Category ID 1)
+POST http://localhost:8080/api/admin/categories/1/product
+Content-Type: application/json
+
+{
+  "productName": "16-inch M1 Pro MacBook Pro",
+  "productDescription": "Perfect for backend engineering and running Docker containers.",
+  "quantity": 10,
+  "price": 2499.00,
+  "discountedPrice": 2299.00
+}
+
+### 3. Get All Products (Pagination Check)
+GET http://localhost:8080/api/public/products
+
+### 4. The Chaos Test (Validation Check)
+POST http://localhost:8080/api/admin/categories/1/product
+Content-Type: application/json
+
+{
+  "productName": "",
+  "productDescription": "This should fail.",
+  "quantity": -5,
+  "price": -100.00,
+  "discountedPrice": 0.00
+}
+
+
+
+
