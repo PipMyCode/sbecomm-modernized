@@ -1,5 +1,5 @@
 # Stage 1: Build stage using Java 25
-FROM openjdk:25-jdk-slim AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 
 # Copy the maven wrapper and pom file
@@ -17,7 +17,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Create the runtime image using Java 25
-FROM openjdk:25-slim
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 # Create a non-root user and group for security
