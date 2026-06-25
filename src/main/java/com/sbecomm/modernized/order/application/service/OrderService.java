@@ -16,8 +16,8 @@ import com.sbecomm.modernized.order.domain.model.OrderStatus;
 import com.sbecomm.modernized.order.domain.repository.OrderRepository;
 import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
 import com.sbecomm.modernized.common.config.RabbitMQConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import com.sbecomm.modernized.order.domain.repository.OutboxRepository;
 import com.sbecomm.modernized.order.domain.model.OutboxEvent;
 import org.springframework.stereotype.Service;
@@ -103,7 +103,7 @@ public class OrderService implements OrderUseCase {
                     LocalDateTime.now()
             );
             outboxRepository.save(outboxEvent);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Failed to serialize OrderPlacedEvent for outbox", e);
             throw new RuntimeException("Failed to process order event", e);
         }

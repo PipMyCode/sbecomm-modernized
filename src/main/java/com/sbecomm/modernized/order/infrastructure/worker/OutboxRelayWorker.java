@@ -1,6 +1,6 @@
 package com.sbecomm.modernized.order.infrastructure.worker;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.sbecomm.modernized.common.config.RabbitMQConfig;
 import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
 import com.sbecomm.modernized.order.domain.model.OutboxEvent;
