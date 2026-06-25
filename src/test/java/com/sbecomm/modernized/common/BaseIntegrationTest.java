@@ -32,10 +32,7 @@ public abstract class BaseIntegrationTest {
             .withExposedPorts(6379)
             .waitingFor(org.testcontainers.containers.wait.strategy.Wait.forListeningPort());
             
-    static final org.testcontainers.containers.GenericContainer<?> rabbitmq = new org.testcontainers.containers.GenericContainer<>("rabbitmq:3-management-alpine")
-            .withExposedPorts(5672)
-            .waitingFor(org.testcontainers.containers.wait.strategy.Wait.forListeningPort()
-                    .withStartupTimeout(java.time.Duration.ofMinutes(2)));
+    static final org.testcontainers.containers.RabbitMQContainer rabbitmq = new org.testcontainers.containers.RabbitMQContainer("rabbitmq:3-management-alpine");
 
     static {
         postgres.start();
@@ -55,7 +52,7 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", redis::getFirstMappedPort);
         registry.add("spring.rabbitmq.host", rabbitmq::getHost);
-        registry.add("spring.rabbitmq.port", rabbitmq::getFirstMappedPort);
+        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
     }
 
     @BeforeEach
