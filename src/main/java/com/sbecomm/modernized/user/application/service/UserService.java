@@ -83,7 +83,7 @@ public class UserService implements UserUseCase {
                 .map(a -> new AddressResponse(
                         a.getStreet(), a.getCity(), a.getState(),
                         a.getZipCode(), a.getCountry(), a.isDefault()))
-                .collect(Collectors.toList());
+                .toList();
         return new UserResponse(
                 user.getId().value(), user.getEmail(), user.getFirstName(), user.getLastName(), addressResponses
         );

@@ -16,6 +16,8 @@ public interface CatalogRepository {
 
     Optional<Product> findProductById(String id);
 
+    Optional<Product> findProductByIdForUpdate(String id);
+
     PagedResponse<Product> findProductsByCategory(String categoryId, int page, int size);
 
     PagedResponse<Product> findAllProducts(int page, int size);

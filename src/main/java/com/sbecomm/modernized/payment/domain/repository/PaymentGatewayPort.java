@@ -7,7 +7,11 @@ import java.math.BigDecimal;
  */
 public interface PaymentGatewayPort {
     PaymentGatewayResult charge(String paymentId, BigDecimal amount, String currency, String paymentMethodId);
+
     PaymentGatewayResult refund(String transactionId);
-    
-    record PaymentGatewayResult(boolean success, String transactionId, String failureReason) {}
+
+    record PaymentGatewayResult(boolean success,
+                                String transactionId,
+                                String failureReason) {
+    }
 }

@@ -34,21 +34,21 @@ public class PaymentService implements PaymentUseCase {
         }
 
         Payment payment = new Payment(
-            UUID.randomUUID().toString(), 
-            order.id(), 
-            order.totalAmount(), 
-            "USD", 
-            LocalDateTime.now()
+                UUID.randomUUID().toString(),
+                order.id(),
+                order.totalAmount(),
+                "USD",
+                LocalDateTime.now()
         );
         payment.markProcessing();
         paymentRepository.save(payment);
 
         // Interface with Stripe
         PaymentGatewayPort.PaymentGatewayResult result = paymentGatewayPort.charge(
-            payment.getId(), 
-            payment.getAmount(), 
-            payment.getCurrency(), 
-            request.paymentMethodId()
+                payment.getId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                request.paymentMethodId()
         );
 
         if (result.success()) {
@@ -69,7 +69,7 @@ public class PaymentService implements PaymentUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
 
         // Enforce BOLA
-        orderUseCase.getOrder(userId, payment.getOrderId()); 
+        orderUseCase.getOrder(userId, payment.getOrderId());
 
         PaymentGatewayPort.PaymentGatewayResult result = paymentGatewayPort.refund(payment.getTransactionId());
 
@@ -91,16 +91,16 @@ public class PaymentService implements PaymentUseCase {
 
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("No payment found for order: " + orderId));
-                
+
         return toResponse(payment);
     }
 
     private PaymentResponse toResponse(Payment payment) {
         return new PaymentResponse(
-            payment.getId(), payment.getOrderId(), payment.getAmount(), 
-            payment.getCurrency(), payment.getStatus().name(), 
-            payment.getTransactionId(), payment.getFailureReason(), 
-            payment.getCreatedAt()
+                payment.getId(), payment.getOrderId(), payment.getAmount(),
+                payment.getCurrency(), payment.getStatus().name(),
+                payment.getTransactionId(), payment.getFailureReason(),
+                payment.getCreatedAt()
         );
     }
 }

@@ -21,7 +21,6 @@ public class PaymentController {
     private final PaymentUseCase paymentUseCase;
 
 
-
     @PostMapping("/process")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentResponse> processPayment(

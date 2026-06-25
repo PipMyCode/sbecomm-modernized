@@ -51,6 +51,11 @@ public class CatalogRepositoryAdapter implements CatalogRepository {
     }
 
     @Override
+    public Optional<Product> findProductByIdForUpdate(String id) {
+        return productJpaRepository.findByIdForUpdate(id).map(this::toDomain);
+    }
+
+    @Override
     public PagedResponse<Product> findProductsByCategory(String categoryId, int page, int size) {
         Page<ProductEntity> productPage = productJpaRepository.findByCategoryId(categoryId, PageRequest.of(page, size));
         return toPagedResponse(productPage);

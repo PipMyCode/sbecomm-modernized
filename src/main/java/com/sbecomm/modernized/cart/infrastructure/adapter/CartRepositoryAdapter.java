@@ -41,7 +41,9 @@ public class CartRepositoryAdapter implements CartRepository {
         Cart cart = new Cart(new UserId(entity.getUserId()));
         if (entity.getItems() != null) {
             entity.getItems().forEach(itemEntity -> 
-                cart.addItem(new ProductId(itemEntity.getProductId()), itemEntity.getQuantity(), itemEntity.getUnitPrice())
+                cart.addItem(new ProductId(itemEntity.getProductId()),
+                        itemEntity.getQuantity(),
+                        itemEntity.getUnitPrice())
             );
         }
         if (entity.getAppliedPromotionCode() != null) {

@@ -16,7 +16,10 @@ import com.sbecomm.modernized.order.domain.model.OrderStatus;
 import com.sbecomm.modernized.order.domain.repository.OrderRepository;
 import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
 import com.sbecomm.modernized.common.config.RabbitMQConfig;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sbecomm.modernized.order.domain.repository.OutboxRepository;
+import com.sbecomm.modernized.order.domain.model.OutboxEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +40,8 @@ public class OrderService implements OrderUseCase {
     private final CartUseCase cartUseCase; // Integrating with another bounded context
     private final CatalogUseCase catalogUseCase; // Integrating with Catalog for inventory
     private final PromotionUseCase promotionUseCase;
-    private final RabbitTemplate rabbitTemplate;
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
 
 
 
@@ -83,10 +87,26 @@ public class OrderService implements OrderUseCase {
         log.debug("Clearing cart for userId: {} after successful checkout", userId);
         cartUseCase.clearCart(userId);
 
-        // Publish Asynchronous Event to RabbitMQ
-        log.info("Publishing OrderPlacedEvent to RabbitMQ for async processing");
+        // Implement Transactional Outbox Pattern
+        log.info("Saving OrderPlacedEvent to Outbox table for reliable async processing");
         OrderPlacedEvent event = new OrderPlacedEvent(savedOrder.getId().value(), userId);
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ORDER_ROUTING_KEY, event);
+        
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            OutboxEvent outboxEvent = new OutboxEvent(
+                    UUID.randomUUID().toString(),
+                    "Order",
+                    savedOrder.getId().value(),
+                    "OrderPlacedEvent",
+                    payload,
+                    false,
+                    LocalDateTime.now()
+            );
+            outboxRepository.save(outboxEvent);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize OrderPlacedEvent for outbox", e);
+            throw new RuntimeException("Failed to process order event", e);
+        }
 
         return toResponse(savedOrder);
     }

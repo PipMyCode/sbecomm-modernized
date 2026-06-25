@@ -27,11 +27,11 @@ public class PromotionService implements PromotionUseCase {
         Promotion promotion = new Promotion(
                 UUID.randomUUID().toString(),
                 request.code().toUpperCase(),
-            request.discountPercentage(),
-            true,
-            request.expiresAt(),
-            request.maxUses(),
-            0
+                request.discountPercentage(),
+                true,
+                request.expiresAt(),
+                request.maxUses(),
+                0
         );
         return toResponse(promotionRepository.save(promotion));
     }
@@ -52,8 +52,8 @@ public class PromotionService implements PromotionUseCase {
     public void consumeCode(String code) {
         log.info("Consuming promotion code: {}", code);
         Promotion promotion = promotionRepository.findByCode(code.toUpperCase())
-            .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + code));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Promotion not found: " + code));
+
         promotion.consume();
         promotionRepository.save(promotion);
     }
@@ -61,12 +61,12 @@ public class PromotionService implements PromotionUseCase {
     private PromotionResponse toResponse(Promotion promotion) {
         return new PromotionResponse(
                 promotion.getId(),
-            promotion.getCode(),
-            promotion.getDiscountPercentage(),
-            promotion.isActive(),
-            promotion.getExpiresAt(),
-            promotion.getMaxUses(),
-            promotion.getCurrentUses()
+                promotion.getCode(),
+                promotion.getDiscountPercentage(),
+                promotion.isActive(),
+                promotion.getExpiresAt(),
+                promotion.getMaxUses(),
+                promotion.getCurrentUses()
         );
     }
 }

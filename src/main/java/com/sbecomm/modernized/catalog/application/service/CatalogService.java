@@ -112,7 +112,7 @@ public class CatalogService implements CatalogUseCase {
             Integer quantity = entry.getValue();
             
             log.debug("Reserving {} units for productId: {}", quantity, productId);
-            Product product = catalogRepository.findProductById(productId)
+            Product product = catalogRepository.findProductByIdForUpdate(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
             
             // This throws InsufficientStockException if stock < quantity, which automatically rolls back the transaction

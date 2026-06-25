@@ -34,8 +34,8 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
 
     private Payment toDomain(PaymentEntity entity) {
         Payment payment = new Payment(
-            entity.getId(), entity.getOrderId(), entity.getAmount(), 
-            entity.getCurrency(), entity.getCreatedAt()
+                entity.getId(), entity.getOrderId(), entity.getAmount(),
+                entity.getCurrency(), entity.getCreatedAt()
         );
         payment.reconstructState(entity.getStatus(), entity.getTransactionId(), entity.getFailureReason());
         return payment;
