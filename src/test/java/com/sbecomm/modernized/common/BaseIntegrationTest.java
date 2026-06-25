@@ -27,9 +27,13 @@ public abstract class BaseIntegrationTest {
 
     // Singleton Container Pattern to prevent Spring Context cache mismatch
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+    static final org.testcontainers.containers.GenericContainer<?> redis = new org.testcontainers.containers.GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+    static final org.testcontainers.containers.GenericContainer<?> rabbitmq = new org.testcontainers.containers.GenericContainer<>("rabbitmq:3-management-alpine").withExposedPorts(5672);
 
     static {
         postgres.start();
+        redis.start();
+        rabbitmq.start();
     }
 
     @MockitoBean
@@ -41,6 +45,10 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", redis::getFirstMappedPort);
+        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+        registry.add("spring.rabbitmq.port", rabbitmq::getFirstMappedPort);
     }
 
     @BeforeEach
