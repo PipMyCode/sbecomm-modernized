@@ -8,6 +8,8 @@ import com.sbecomm.modernized.catalog.domain.model.Product;
 import com.sbecomm.modernized.catalog.domain.model.ProductId;
 import com.sbecomm.modernized.catalog.domain.repository.CatalogRepository;
 import com.sbecomm.modernized.common.dto.PagedResponse;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ public class CatalogService implements CatalogUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"products", "paged_products"}, allEntries = true)
     public ProductResponse createProduct(CreateProductRequest request) {
         log.info("Processing request to create product: {}", request.name());
         Category category = catalogRepository.findCategoryById(request.categoryId())
@@ -56,6 +59,7 @@ public class CatalogService implements CatalogUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"products", "paged_products"}, allEntries = true)
     public ProductResponse updateProduct(String productId, UpdateProductRequest request) {
         log.info("Processing request to update product: {}", productId);
         Product product = catalogRepository.findProductById(productId)
@@ -69,6 +73,7 @@ public class CatalogService implements CatalogUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "products", key = "#productId")
     public ProductResponse getProduct(String productId) {
         log.debug("Fetching product details from database for id: {}", productId);
         return catalogRepository.findProductById(productId)
@@ -81,6 +86,7 @@ public class CatalogService implements CatalogUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "paged_products")
     public PagedResponse<ProductResponse> getAllProducts(int page, int size) {
         log.debug("Fetching paged products from database (page: {}, size: {})", page, size);
         PagedResponse<Product> pagedProducts = catalogRepository.findAllProducts(page, size);
@@ -89,6 +95,7 @@ public class CatalogService implements CatalogUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "paged_products")
     public PagedResponse<ProductResponse> getProductsByCategory(String categoryId, int page, int size) {
         log.debug("Fetching paged products by category {} from database (page: {}, size: {})", categoryId, page, size);
         PagedResponse<Product> pagedProducts = catalogRepository.findProductsByCategory(categoryId, page, size);

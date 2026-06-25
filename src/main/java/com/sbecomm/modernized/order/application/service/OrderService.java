@@ -14,6 +14,9 @@ import com.sbecomm.modernized.order.domain.model.OrderId;
 import com.sbecomm.modernized.order.domain.model.OrderItem;
 import com.sbecomm.modernized.order.domain.model.OrderStatus;
 import com.sbecomm.modernized.order.domain.repository.OrderRepository;
+import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
+import com.sbecomm.modernized.common.config.RabbitMQConfig;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,7 @@ public class OrderService implements OrderUseCase {
     private final CartUseCase cartUseCase; // Integrating with another bounded context
     private final CatalogUseCase catalogUseCase; // Integrating with Catalog for inventory
     private final PromotionUseCase promotionUseCase;
+    private final RabbitTemplate rabbitTemplate;
 
 
 
@@ -78,6 +82,11 @@ public class OrderService implements OrderUseCase {
         // Clear the cart after successful order creation
         log.debug("Clearing cart for userId: {} after successful checkout", userId);
         cartUseCase.clearCart(userId);
+
+        // Publish Asynchronous Event to RabbitMQ
+        log.info("Publishing OrderPlacedEvent to RabbitMQ for async processing");
+        OrderPlacedEvent event = new OrderPlacedEvent(savedOrder.getId().value(), userId);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ORDER_ROUTING_KEY, event);
 
         return toResponse(savedOrder);
     }
