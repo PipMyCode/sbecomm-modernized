@@ -37,7 +37,7 @@ jobs:
       - name: Set up JDK 26
         uses: actions/setup-java@v4
         with:
-          java-version: '26' # <-- Matches your POM target
+          java-version: '26'
           distribution: 'temurin'
           cache: 'maven'
 
