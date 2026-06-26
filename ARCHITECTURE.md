@@ -16,7 +16,7 @@ We deliberately chose a **Modular Monolith** over a distributed Microservices ar
 To handle massive Black Friday-level throughput, the system employs advanced concurrency patterns and Java 26 preview features.
 
 ### Structured Concurrency
-We utilize Java 26's `StructuredTaskScope` for scatter-gather operations (e.g., fetching product details across multiple downstream services simultaneously). This ensures that if one sub-task fails, all siblings are immediately cancelled, preventing resource leakage and thread hanging.
+We utilize Java 26's `StructuredTaskScope` for massive scatter-gather read operations (e.g., fetching product details across multiple downstream services simultaneously). However, we explicitly avoid using virtual threads or structured concurrency within write-heavy `@Transactional` boundaries (like Order Checkout) to ensure Spring's `ThreadLocal` transaction contexts remain intact and ACID guarantees are strictly enforced.
 
 ### Deadlock Prevention
 In the `Catalog` module, pessimistic locking is used during checkout inventory reservation. To mathematically prevent distributed deadlocks under heavy concurrent load, the system sorts all requested Product IDs alphabetically before acquiring row-level database locks (`SELECT ... FOR UPDATE`).

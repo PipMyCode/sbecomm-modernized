@@ -62,43 +62,23 @@ public class OrderService implements OrderUseCase {
         java.util.Map<String, Integer> itemsToReserve = cart.items().stream()
                 .collect(Collectors.toMap(CartItemResponse::productId, CartItemResponse::quantity));
 
-        try (var scope = java.util.concurrent.StructuredTaskScope.open(java.util.concurrent.StructuredTaskScope.Joiner.<Void>allSuccessfulOrThrow())) {
-            // Fork inventory reservation task
-            scope.fork(() -> {
-                log.debug("Reserving inventory for {} unique items in the cart", itemsToReserve.size());
-                catalogUseCase.reserveInventory(itemsToReserve);
-                return null;
-            });
+        try {
+            log.debug("Reserving inventory for {} unique items in the cart", itemsToReserve.size());
+            catalogUseCase.reserveInventory(itemsToReserve);
             
-            // Fork promotion consumption task if needed
             if (cart.appliedPromotionCode() != null) {
-                scope.fork(() -> {
-                    log.debug("Consuming promotion code: {}", cart.appliedPromotionCode());
-                    promotionUseCase.consumeCode(cart.appliedPromotionCode());
-                    return null;
-                });
+                log.debug("Consuming promotion code: {}", cart.appliedPromotionCode());
+                promotionUseCase.consumeCode(cart.appliedPromotionCode());
             }
-            
-            log.debug("... Scope joining. Waiting for parallel reservation and promotion subtasks...");
-            scope.join();
-            log.debug("... Scope joined successfully. Both subtasks completed without errors.");
-            
-        } catch (java.util.concurrent.StructuredTaskScope.FailedException e) {
-            Throwable cause = e.getCause();
-            log.error("Checkout validation failed: {}", cause.getMessage());
-            
-            throw switch (cause) {
-                case com.sbecomm.modernized.catalog.domain.exception.InsufficientStockException ise -> 
-                    new IllegalStateException("Failed to reserve inventory: " + ise.getMessage(), ise);
-                case IllegalArgumentException iae -> 
-                    new IllegalStateException("Invalid data provided: " + iae.getMessage(), iae);
-                case IllegalStateException ise ->
-                    new IllegalStateException("Failed to apply promotion: " + ise.getMessage(), ise);
-                default -> new RuntimeException("Unexpected error during checkout processing", cause);
-            };
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Checkout processing was interrupted", e);
+        } catch (com.sbecomm.modernized.catalog.domain.exception.InsufficientStockException ise) {
+            log.error("Checkout validation failed: {}", ise.getMessage());
+            throw new IllegalStateException("Failed to reserve inventory: " + ise.getMessage(), ise);
+        } catch (IllegalArgumentException iae) {
+            log.error("Checkout validation failed: {}", iae.getMessage());
+            throw new IllegalStateException("Invalid data provided: " + iae.getMessage(), iae);
+        } catch (IllegalStateException ise) {
+            log.error("Checkout validation failed: {}", ise.getMessage());
+            throw new IllegalStateException("Failed to apply promotion: " + ise.getMessage(), ise);
         }
 
         Order order = new Order(new OrderId(UUID.randomUUID().toString()), userId, LocalDateTime.now(), OrderStatus.CREATED);
