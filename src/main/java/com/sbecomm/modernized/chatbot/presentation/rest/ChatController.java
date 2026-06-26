@@ -7,6 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+
 @RestController
 @RequestMapping("/api/v1/chat")
 public class ChatController {
@@ -21,8 +25,12 @@ public class ChatController {
     public record ChatResponse(String reply) {}
 
     @PostMapping
-    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
-        String reply = chatbotService.chat(request.message());
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ChatResponse> chat(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody ChatRequest request) {
+        // Enforce BOLA by explicitly passing the authenticated user's ID
+        String reply = chatbotService.chat(jwt.getSubject(), request.message());
         return ResponseEntity.ok(new ChatResponse(reply));
     }
 }
