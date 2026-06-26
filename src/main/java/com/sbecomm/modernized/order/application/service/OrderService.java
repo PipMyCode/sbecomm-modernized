@@ -16,8 +16,8 @@ import com.sbecomm.modernized.order.domain.model.OrderStatus;
 import com.sbecomm.modernized.order.domain.repository.OrderRepository;
 import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
 import com.sbecomm.modernized.common.config.RabbitMQConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import com.sbecomm.modernized.order.domain.repository.OutboxRepository;
 import com.sbecomm.modernized.order.domain.model.OutboxEvent;
 import org.springframework.stereotype.Service;
@@ -62,21 +62,33 @@ public class OrderService implements OrderUseCase {
         java.util.Map<String, Integer> itemsToReserve = cart.items().stream()
                 .collect(Collectors.toMap(CartItemResponse::productId, CartItemResponse::quantity));
 
-        // Reserve inventory in the Catalog module before completing the order
-        log.debug("Reserving inventory for {} unique items in the cart", itemsToReserve.size());
-        catalogUseCase.reserveInventory(itemsToReserve);
+        try {
+            log.debug("Reserving inventory for {} unique items in the cart", itemsToReserve.size());
+            catalogUseCase.reserveInventory(itemsToReserve);
+            
+            if (cart.appliedPromotionCode() != null) {
+                log.debug("Consuming promotion code: {}", cart.appliedPromotionCode());
+                promotionUseCase.consumeCode(cart.appliedPromotionCode());
+            }
+        } catch (com.sbecomm.modernized.catalog.domain.exception.InsufficientStockException ise) {
+            log.error("Checkout validation failed: {}", ise.getMessage());
+            throw new IllegalStateException("Failed to reserve inventory: " + ise.getMessage(), ise);
+        } catch (IllegalArgumentException iae) {
+            log.error("Checkout validation failed: {}", iae.getMessage());
+            throw new IllegalStateException("Invalid data provided: " + iae.getMessage(), iae);
+        } catch (IllegalStateException ise) {
+            log.error("Checkout validation failed: {}", ise.getMessage());
+            throw new IllegalStateException("Failed to apply promotion: " + ise.getMessage(), ise);
+        }
 
         Order order = new Order(new OrderId(UUID.randomUUID().toString()), userId, LocalDateTime.now(), OrderStatus.CREATED);
         
         for (CartItemResponse cartItem : cart.items()) {
-            // Snapshotting the price as it exists within the cart at this moment
             order.addOrderItem(new OrderItem(cartItem.productId(), cartItem.quantity(), cartItem.unitPrice()));
         }
         
         if (cart.appliedPromotionCode() != null) {
             order.applyPromotion(cart.appliedPromotionCode(), cart.discountPercentage());
-            log.debug("Consuming promotion code: {}", cart.appliedPromotionCode());
-            promotionUseCase.consumeCode(cart.appliedPromotionCode());
         }
 
         log.debug("Saving new order for userId: {}", userId);
@@ -103,7 +115,7 @@ public class OrderService implements OrderUseCase {
                     LocalDateTime.now()
             );
             outboxRepository.save(outboxEvent);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Failed to serialize OrderPlacedEvent for outbox", e);
             throw new RuntimeException("Failed to process order event", e);
         }

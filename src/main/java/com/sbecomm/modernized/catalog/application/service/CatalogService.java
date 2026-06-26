@@ -107,9 +107,13 @@ public class CatalogService implements CatalogUseCase {
     public void reserveInventory(java.util.Map<String, Integer> itemsToReserve) {
         log.info("Processing inventory reservation request for {} items", itemsToReserve.size());
         
-        for (java.util.Map.Entry<String, Integer> entry : itemsToReserve.entrySet()) {
-            String productId = entry.getKey();
-            Integer quantity = entry.getValue();
+        // Ensure a consistent locking order by sorting the product IDs to prevent deadlocks
+        List<String> sortedProductIds = itemsToReserve.keySet().stream()
+                .sorted()
+                .collect(Collectors.toList());
+        
+        for (String productId : sortedProductIds) {
+            Integer quantity = itemsToReserve.get(productId);
             
             log.debug("Reserving {} units for productId: {}", quantity, productId);
             Product product = catalogRepository.findProductByIdForUpdate(productId)

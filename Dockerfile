@@ -1,5 +1,5 @@
-# Stage 1: Build stage using Java 25
-FROM eclipse-temurin:25-jdk-alpine AS build
+# Stage 1: Build stage using Java 26
+FROM eclipse-temurin:26-jdk-alpine AS build
 WORKDIR /app
 
 # Copy the maven wrapper and pom file
@@ -16,8 +16,8 @@ RUN ./mvnw dependency:go-offline
 COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
-# Stage 2: Create the runtime image using Java 25
-FROM eclipse-temurin:25-jre-alpine
+# Stage 2: Create the runtime image using Java 26
+FROM eclipse-temurin:26-jre-alpine
 WORKDIR /app
 
 # Create a non-root user and group for security

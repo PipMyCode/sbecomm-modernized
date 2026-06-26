@@ -1,11 +1,11 @@
 package com.sbecomm.modernized.common.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sbecomm.modernized.order.application.dto.event.OrderPlacedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class JacksonConfig {
@@ -13,9 +13,11 @@ public class JacksonConfig {
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
+        // explicitly instantiate ObjectMapper within an immutable configuration bean layer
+        // to guarantee zero thread-pinning anomalies during asynchronous Jackson serialization.
+        // Jackson 3 JsonMapper is immutable once built.
+        return JsonMapper.builder()
+                .findAndAddModules()
+                .build();
     }
 }
