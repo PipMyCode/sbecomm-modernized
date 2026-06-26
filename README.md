@@ -1,6 +1,6 @@
 # 🚀 Modernized E-Commerce Platform
 
-![Java](https://img.shields.io/badge/Java-26_Preview-orange?style=for-the-badge&logo=java)
+![Java](https://img.shields.io/badge/Java-26-orange?style=for-the-badge&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1+-brightgreen?style=for-the-badge&logo=spring-boot)
 ![Spring AI](https://img.shields.io/badge/Spring_AI-1.0.0--M2-6db33f?style=for-the-badge&logo=spring)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?style=for-the-badge&logo=postgresql)
@@ -93,7 +93,7 @@ Powered by **Spring AI**, the API exposes an intelligent, privacy-first Customer
 
 | Category | Technologies |
 |---|---|
-| **Core** | Java 26 (Preview), Spring Boot 4.1 |
+| **Core** | Java 26, Spring Boot 4.1 |
 | **Architecture** | Domain-Driven Design (DDD), Hexagonal Architecture |
 | **AI** | Spring AI 1.0.0-M2, Local Gemma LLM (LM Studio), ONNX |
 | **Database & Cache** | PostgreSQL 17, Redis |

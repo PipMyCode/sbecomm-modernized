@@ -214,7 +214,6 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <compilerArgs>
-                        <arg>--enable-preview</arg>
                     </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
@@ -239,7 +238,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmArguments>--enable-preview</jvmArguments>
+                    <jvmArguments></jvmArguments>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -255,7 +254,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <argLine>--enable-preview</argLine>
+                    <argLine></argLine>
                     <!-- Includes standard unit tests (e.g., *Test.java) -->
                     <includes>
                         <include>**/*Test.java</include>
@@ -274,7 +273,7 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <argLine>--enable-preview</argLine>
+                    <argLine></argLine>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                     <includes>
                         <include>**/*IT.java</include>
