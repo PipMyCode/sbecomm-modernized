@@ -66,8 +66,7 @@ We deliberately chose a **Modular Monolith** over a distributed Microservices ar
 
 ### 2. High-Performance Concurrency (Java 26)
 To handle massive throughput (e.g., Black Friday sales), the system employs advanced concurrency patterns:
-- **Structured Concurrency**: We utilize Java 26's `StructuredTaskScope` for massive scatter-gather read operations (e.g., fetching product details across multiple downstream services simultaneously).
-- **Strict Transactional Boundaries**: We explicitly **avoid** using virtual threads or structured concurrency within write-heavy `@Transactional` boundaries (like Order Checkout) to ensure Spring's `ThreadLocal` transaction contexts remain intact and ACID guarantees are strictly enforced. Operations like inventory reservation and promotion consumption execute sequentially on the primary carrier thread within the database transaction.
+- **Strict Transactional Boundaries**: We explicitly **avoid** using virtual threads within write-heavy `@Transactional` boundaries (like Order Checkout) to ensure Spring's `ThreadLocal` transaction contexts remain intact and ACID guarantees are strictly enforced. Operations like inventory reservation and promotion consumption execute sequentially on the primary carrier thread within the database transaction.
 - **Deadlock Prevention**: In the `Catalog` module, pessimistic locking is used during checkout inventory reservation. To mathematically prevent distributed deadlocks under heavy concurrent load, the system sorts all requested Product IDs alphabetically before acquiring row-level database locks (`SELECT ... FOR UPDATE`).
 - **Thread Pinning Mitigation**: Jackson's `ObjectMapper` is explicitly configured within an immutable Bean layer to guarantee thread-safe serialization during asynchronous payload processing, preventing Virtual Thread pinning anomalies.
 
