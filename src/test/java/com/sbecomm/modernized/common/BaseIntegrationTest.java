@@ -27,12 +27,14 @@ public abstract class BaseIntegrationTest {
 
     // Singleton Container Pattern to prevent Spring Context cache mismatch
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
-    
-    static final org.testcontainers.containers.GenericContainer<?> redis = new org.testcontainers.containers.GenericContainer<>("redis:7-alpine")
-            .withExposedPorts(6379)
-            .waitingFor(org.testcontainers.containers.wait.strategy.Wait.forListeningPort());
-            
-    static final org.testcontainers.containers.RabbitMQContainer rabbitmq = new org.testcontainers.containers.RabbitMQContainer("rabbitmq:3-management-alpine");
+
+    static final org.testcontainers.containers.GenericContainer<?> redis =
+            new org.testcontainers.containers.GenericContainer<>("redis:7-alpine")
+                    .withExposedPorts(6379)
+                    .waitingFor(org.testcontainers.containers.wait.strategy.Wait.forListeningPort());
+
+    static final org.testcontainers.containers.RabbitMQContainer rabbitmq =
+            new org.testcontainers.containers.RabbitMQContainer("rabbitmq:3-management-alpine");
 
     static {
         postgres.start();

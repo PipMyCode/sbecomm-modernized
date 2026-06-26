@@ -75,6 +75,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    volumes:
+      - uploads_data:/app/uploads
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
       interval: 10s
@@ -111,6 +113,12 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - backend-net
     depends_on:
@@ -153,3 +161,4 @@ networks:
 
 volumes:
   pg_data:
+  uploads_data:

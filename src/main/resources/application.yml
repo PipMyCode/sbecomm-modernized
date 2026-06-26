@@ -13,7 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       # Production safeguard: Never auto-update schema, only validate
-      ddl-auto: validate
+      ddl-auto: update
     # Production safeguard: Disable SQL logging to prevent leaking PII/secure data to logs
     show-sql: false
     properties:

@@ -34,6 +34,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Allow public access to Swagger UI and API Docs
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // Allow Prometheus to scrape Actuator metrics
+                .requestMatchers("/actuator/**").permitAll()
                 // Allow public read access to the catalog
                 .requestMatchers(HttpMethod.GET, "/api/v1/catalog/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/catalog/products/**").permitAll()

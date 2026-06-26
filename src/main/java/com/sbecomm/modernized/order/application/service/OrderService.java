@@ -135,7 +135,7 @@ public class OrderService implements OrderUseCase {
     public List<OrderResponse> getUserOrders(String userId) {
         log.debug("Fetching all orders for userId: {}", userId);
         return orderRepository.findByUserId(userId).stream()
-                .map(this::toResponse).collect(Collectors.toList());
+                .map(this::toResponse).toList();
     }
 
     @Override
@@ -161,7 +161,7 @@ public class OrderService implements OrderUseCase {
     private OrderResponse toResponse(Order order) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
                 .map(i -> new OrderItemResponse(i.getProductId(), i.getQuantity(), i.getUnitPrice(), i.getTotalPrice()))
-                .collect(Collectors.toList());
+                .toList();
                 
         return new OrderResponse(
                 order.getId().value(),

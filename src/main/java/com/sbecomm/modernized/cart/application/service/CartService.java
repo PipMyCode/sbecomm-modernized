@@ -126,7 +126,7 @@ public class CartService implements CartUseCase {
                         item.getUnitPrice(),
                         item.getTotalPrice()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         return new CartResponse(
                 cart.getUserId().value(),

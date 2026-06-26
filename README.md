@@ -1,12 +1,12 @@
 # Modernized E-Commerce API
 
-![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=java)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0+-brightgreen?style=for-the-badge&logo=spring-boot)
+![Java](https://img.shields.io/badge/Java-26-orange?style=for-the-badge&logo=java)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-brightgreen?style=for-the-badge&logo=spring-boot)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?style=for-the-badge&logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)
 ![Architecture](https://img.shields.io/badge/Architecture-Modular_Monolith-purple?style=for-the-badge)
 
-An enterprise-grade, highly scalable e-commerce backend built with **Spring Boot 4.0** and **Java 25**. This project serves as a showcase for modern backend engineering, emphasizing clean architecture, strict security, and robust DevOps practices.
+An enterprise-grade, highly scalable e-commerce backend built with **Spring Boot 4.1.0** and **Java 26**. This project serves as a showcase for modern backend engineering, emphasizing clean architecture, strict security, and robust DevOps practices.
 
 ---
 
@@ -47,6 +47,8 @@ graph TD
     
     subgraph Infrastructure Services
         DB[(PostgreSQL 17)]
+        CACHE[(Redis 7)]
+        MQ[[RabbitMQ 3]]
         IAM[Keycloak IAM]
         PROM[Prometheus]
         GRAF[Grafana]
@@ -54,6 +56,8 @@ graph TD
     
     API --> |JDBC / JPA| DB
     API --> |OAuth2 / JWT| IAM
+    API -.-> |RedisCacheManager| CACHE
+    Order --> |Outbox Relays Events| MQ
     PROM --> |Scrapes /actuator| API
     GRAF --> |Reads Metrics| PROM
 ```
@@ -100,10 +104,47 @@ src/main/java/com/sbecomm/modernized/
 
 ---
 
-## Enterprise Security & IAM
+## Enterprise Security & IAM (Spring Security 7.1.0)
 
-- **Keycloak Integration**: Authentication is entirely offloaded to **Keycloak** (Identity and Access Management). The Spring Boot application acts as an OAuth2 Resource Server, cryptographically verifying JWTs on every request.
-- **Role-Based Access Control (RBAC)**: Secure endpoints use method-level security (e.g., `@PreAuthorize`) mapped to Keycloak roles.
+The application implements a robust zero-trust security model leveraging **Spring Security 7.1.0** and **Keycloak**. It operates purely as a stateless OAuth2 Resource Server.
+
+### Authentication & Authorization Flow
+
+```mermaid
+sequenceDiagram
+    participant User/Client
+    participant Keycloak IAM
+    participant Spring Boot API
+    participant PostgreSQL
+
+    User/Client->>Keycloak IAM: 1. POST /token (credentials or grant)
+    Keycloak IAM-->>User/Client: 2. Returns Signed JWT (Access Token)
+    
+    User/Client->>Spring Boot API: 3. HTTP Request + Bearer JWT
+    
+    rect rgb(230, 240, 255)
+        Note over Spring Boot API: Spring Security 7.1.0 Filter Chain
+        Spring Boot API->>Spring Boot API: 4. Cryptographically verifies JWT signature
+        Spring Boot API->>Spring Boot API: 5. Extracts `realm_access.roles` claim
+        Spring Boot API->>Spring Boot API: 6. Maps claims to `GrantedAuthority`
+        Spring Boot API->>Spring Boot API: 7. Evaluates `@PreAuthorize("hasRole('ADMIN')")`
+    end
+    
+    alt Unauthorized / Invalid Token
+        Spring Boot API-->>User/Client: 401 Unauthorized / 403 Forbidden
+    else Authorized
+        Spring Boot API->>PostgreSQL: 8. Execute Business Logic
+        PostgreSQL-->>Spring Boot API: Data
+        Spring Boot API-->>User/Client: 200 OK (Resource)
+    end
+```
+
+### Key Security Features:
+
+- **Stateless OAuth2 Resource Server**: The API does not store any session state. Every request must be authenticated via a cryptographically signed JSON Web Token (JWT).
+- **Custom JWT Converter**: We implement a custom `JwtAuthenticationConverter` to seamlessly map Keycloak's deeply nested `realm_access.roles` directly into native Spring Security `SimpleGrantedAuthority` objects, avoiding generic scope mapping.
+- **Method-Level Security (RBAC)**: Fine-grained Role-Based Access Control is enforced at the controller layer using `@PreAuthorize("hasRole('ADMIN')")`.
+- **CORS & CSRF Protection**: Cross-Origin Resource Sharing is strictly configured, and CSRF is disabled appropriately for a stateless JWT-based API architecture.
 
 ---
 
@@ -126,10 +167,30 @@ The infrastructure is hardened for production and adheres to strict DevSecOps pr
 
 ## Observability & Monitoring
 
-Built-in production monitoring using the **TICK/Prometheus** stack:
-- **Spring Boot Actuator**: Exposes a `/actuator/prometheus` endpoint streaming real-time JVM, HTTP, and database metrics.
-- **Prometheus**: Time-series database actively scraping the API.
-- **Grafana**: Beautiful, real-time visualization dashboards.
+![Spring Boot 4.1 Observability Dashboard](dashboard-images/grafana-dashboard-1.png)
+
+<details>
+<summary><b>View more dashboard panels (JVM, Connections, HTTP, Logs)</b></summary>
+
+![JVM Memory Details](dashboard-images/grafana-dashboard-2.png)
+![JVM Metaspace & Threads](dashboard-images/grafana-dashboard-3.png)
+![HikariCP Connection Pool](dashboard-images/grafana-dashboard-4.png)
+![HTTP Request Traffic](dashboard-images/grafana-dashboard-5.png)
+![HTTP Latency](dashboard-images/grafana-dashboard-6.png)
+![Logback Error/Warn Spikes](dashboard-images/grafana-dashboard-7.png)
+</details>
+
+This application comes completely pre-wired with an enterprise-grade observability stack that spins up automatically via Docker Compose. It actively monitors the health, performance, and traffic of the Spring Boot API in real-time.
+
+**The Stack:**
+- **Micrometer & Actuator:** Instruments the Spring Boot 4.1 API and exposes a `/actuator/prometheus` endpoint.
+- **Prometheus:** A time-series database configured to aggressively scrape the API metrics every 5 seconds.
+- **Grafana:** Provides stunning, real-time data visualization. We auto-provision the official **Spring Boot 4.1 Observability Dashboard** so it's ready the second the container boots.
+
+**What is Tracked?**
+- **HTTP Traffic:** Tracks p95 / p99 request latency, request throughput (requests/sec), and HTTP error rates (4xx vs 5xx).
+- **JVM Health:** Monitors JVM Heap utilization, Garbage Collection pauses, and active Daemon threads.
+- **HikariCP Connection Pool:** Tracks active vs. idle PostgreSQL database connections to prevent database bottlenecking.
 
 ---
 
@@ -137,7 +198,7 @@ Built-in production monitoring using the **TICK/Prometheus** stack:
 
 ### Prerequisites
 - Docker & Docker Compose
-- Java 25 (If running outside of Docker)
+- Java 26 (If running outside of Docker)
 
 ### Running the Application
 
@@ -155,7 +216,7 @@ docker-compose up --build -d
 ### Accessing the Services
 - **E-Commerce API**: `http://localhost:8080`
 - **Keycloak Admin Console**: `http://localhost:8081` (Login: `admin` / `secure_admin_pass_123`)
-- **Grafana Dashboards**: `http://localhost:3000` (Login: `admin` / `secure_grafana_pass_123`)
+- **Grafana Dashboards**: `http://localhost:3000` (Zero-Config Anonymous Access - No login required!)
 - **Prometheus UI**: `http://localhost:9090`
 
 *(Note: Secrets are managed via a `.env` file for local development).*

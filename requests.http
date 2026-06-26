@@ -1,0 +1,178 @@
+### E-Commerce Modernized API Tests
+# This file can be run directly from VS Code (using REST Client extension)
+# or IntelliJ IDEA (using the built-in HTTP Client).
+# 
+# Pre-requisite: The application must be running locally via `docker-compose up` 
+# or via `./mvnw spring-boot:run`.
+
+@host = http://localhost:8080
+@keycloakHost = http://localhost:8081
+@realm = sbecomm-realm
+@clientId = sbecomm-client
+@clientSecret = sbecomm-client-secret
+
+### 
+### 0. Authentication (Get Token)
+### 
+
+# @name loginAdmin
+POST {{keycloakHost}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{clientId}}&client_secret={{clientSecret}}&username=admin&password=secure_admin_pass_123
+
+###
+@adminToken = {{loginAdmin.response.body.access_token}}
+
+
+# @name loginCustomer
+POST {{keycloakHost}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{clientId}}&client_secret={{clientSecret}}&username=customer&password=secure_customer_pass_123
+
+###
+@customerToken = {{loginCustomer.response.body.access_token}}
+
+---
+
+###
+### 1. Catalog & Products (Public & Admin)
+###
+
+### Get all products (Public)
+GET {{host}}/api/v1/catalog/products
+Accept: application/json
+
+### Get specific product
+GET {{host}}/api/v1/catalog/products/prod_123
+Accept: application/json
+
+### Get all categories
+GET {{host}}/api/v1/catalog/categories
+Accept: application/json
+
+### Create a new category (Admin Only)
+POST {{host}}/api/v1/catalog/categories
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "id": "cat_electronics",
+  "name": "Electronics",
+  "description": "Gadgets and devices"
+}
+
+### Create a new product (Admin Only)
+POST {{host}}/api/v1/catalog/products
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "id": "prod_laptop_01",
+  "name": "ProBook X15",
+  "description": "High performance laptop",
+  "price": 1299.99,
+  "categoryId": "cat_electronics",
+  "inventoryCount": 50
+}
+
+---
+
+###
+### 2. User & Addresses
+###
+
+### Register User
+POST {{host}}/api/v1/users
+Content-Type: application/json
+
+{
+  "email": "customer@example.com",
+  "password": "secure_customer_pass_123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+### Get User Profile
+GET {{host}}/api/v1/users/customer@example.com
+Authorization: Bearer {{customerToken}}
+
+---
+
+###
+### 3. Shopping Cart
+###
+
+### View Cart
+GET {{host}}/api/v1/carts/my-cart
+Authorization: Bearer {{customerToken}}
+
+### Add Item to Cart
+POST {{host}}/api/v1/carts/my-cart/items
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "productId": "prod_laptop_01",
+  "quantity": 1
+}
+
+### Remove Item from Cart
+DELETE {{host}}/api/v1/carts/my-cart/items/prod_laptop_01
+Authorization: Bearer {{customerToken}}
+
+### Clear Cart
+DELETE {{host}}/api/v1/carts/my-cart
+Authorization: Bearer {{customerToken}}
+
+---
+
+###
+### 4. Promotions
+###
+
+### Create Promotion (Admin Only)
+POST {{host}}/api/v1/promotions
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "SUMMER20",
+  "discountPercentage": 20,
+  "maxUses": 100
+}
+
+### Apply Promotion to Cart
+POST {{host}}/api/v1/carts/my-cart/promotions
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "code": "SUMMER20"
+}
+
+---
+
+###
+### 5. Orders & Payments
+###
+
+### Place Order
+POST {{host}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+
+### Get All Orders for User
+GET {{host}}/api/v1/orders
+Authorization: Bearer {{customerToken}}
+
+### Process Payment
+POST {{host}}/api/v1/payments/process
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "orderId": "ord_replace_with_actual_id",
+  "paymentMethodId": "pm_card_visa",
+  "amount": 1039.99
+}

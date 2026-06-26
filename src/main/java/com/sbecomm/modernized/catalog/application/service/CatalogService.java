@@ -28,7 +28,6 @@ public class CatalogService implements CatalogUseCase {
     private final CatalogRepository catalogRepository;
 
 
-
     @Override
     @Transactional
     public CategoryResponse createCategory(CreateCategoryRequest request) {
@@ -52,8 +51,8 @@ public class CatalogService implements CatalogUseCase {
         log.info("Processing request to create product: {}", request.name());
         Category category = catalogRepository.findCategoryById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-        Product product = new Product(new ProductId(UUID.randomUUID().toString()), request.name(), request.description(), 
-                                      request.price(), request.stockQuantity(), category);
+        Product product = new Product(new ProductId(UUID.randomUUID().toString()), request.name(), request.description(),
+                request.price(), request.stockQuantity(), category);
         return toResponse(catalogRepository.saveProduct(product));
     }
 
@@ -66,7 +65,7 @@ public class CatalogService implements CatalogUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         Category category = catalogRepository.findCategoryById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
-        
+
         product.updateDetails(request.name(), request.description(), request.price(), category);
         return toResponse(catalogRepository.saveProduct(product));
     }
@@ -106,21 +105,21 @@ public class CatalogService implements CatalogUseCase {
     @Transactional
     public void reserveInventory(java.util.Map<String, Integer> itemsToReserve) {
         log.info("Processing inventory reservation request for {} items", itemsToReserve.size());
-        
+
         for (java.util.Map.Entry<String, Integer> entry : itemsToReserve.entrySet()) {
             String productId = entry.getKey();
             Integer quantity = entry.getValue();
-            
+
             log.debug("Reserving {} units for productId: {}", quantity, productId);
             Product product = catalogRepository.findProductByIdForUpdate(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
-            
+
             // This throws InsufficientStockException if stock < quantity, which automatically rolls back the transaction
             product.reduceStock(quantity);
-            
+
             catalogRepository.saveProduct(product);
         }
-        
+
         log.info("Successfully reserved inventory for all items in the request");
     }
 
@@ -143,8 +142,8 @@ public class CatalogService implements CatalogUseCase {
 
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
-                product.getId().value(), product.getName(), product.getDescription(), 
-                product.getPrice(), product.getStockQuantity(), 
+                product.getId().value(), product.getName(), product.getDescription(),
+                product.getPrice(), product.getStockQuantity(),
                 toResponse(product.getCategory())
         );
     }
