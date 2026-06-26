@@ -1,12 +1,15 @@
 # Modernized E-Commerce API
 
-![Java](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=java)
+![Java](https://img.shields.io/badge/Java-26_Preview-orange?style=for-the-badge&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0+-brightgreen?style=for-the-badge&logo=spring-boot)
+![Spring AI](https://img.shields.io/badge/Spring_AI-1.0.0--M2-6db33f?style=for-the-badge&logo=spring)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?style=for-the-badge&logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)
 ![Architecture](https://img.shields.io/badge/Architecture-Modular_Monolith-purple?style=for-the-badge)
 
-An enterprise-grade, highly scalable e-commerce backend built with **Spring Boot 4.0** and **Java 25**. This project serves as a showcase for modern backend engineering, emphasizing clean architecture, strict security, and robust DevOps practices.
+An enterprise-grade, highly scalable e-commerce backend built with **Spring Boot 4.0** and **Java 26**. This project serves as a showcase for modern backend engineering, emphasizing clean architecture, high-performance concurrency, Agentic AI, strict security, and robust DevOps practices.
+
+👉 **[Read the full Architecture & Design Decisions Document (ARCHITECTURE.md)](ARCHITECTURE.md)**
 
 ---
 
@@ -97,6 +100,16 @@ src/main/java/com/sbecomm/modernized/
 └── presentation/   # Web Layer Adapters
     └── rest/       # Spring MVC @RestControllers
 ```
+
+---
+
+## Agentic AI & RAG Chatbot
+
+Powered by **Spring AI 1.0.0-M2**, the API exposes an intelligent, privacy-first Customer Support Agent:
+- **Local-First Processing**: Uses a local **Gemma** model via LM Studio and offline ONNX vector embeddings. No sensitive user data leaves the internal network.
+- **Retrieval-Augmented Generation**: The agent is augmented with store policies, dynamically intercepting queries via a `QuestionAnswerAdvisor`.
+- **Conversational Memory**: Automatically remembers session context using `InMemoryChatMemory`.
+- **Strict BOLA Protection**: The LLM executes function calls (e.g., checking order status) via dynamically generated Java closures. The authenticated JWT user ID is bound *before* the prompt reaches the LLM, mathematically eliminating BOLA vulnerabilities and Virtual Thread `ThreadLocal` drops.
 
 ---
 
