@@ -206,8 +206,8 @@ Because the entire infrastructure is containerized, you can spin up the API, Pos
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/modernized-ecomm.git
-cd modernized-ecomm
+git clone https://github.com/PipMyCode/sbecomm-modernized.git
+cd sbecomm-modernized
 
 # 2. Build and start the infrastructure
 docker-compose up --build -d
