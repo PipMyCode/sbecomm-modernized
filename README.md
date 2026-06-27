@@ -1,4 +1,4 @@
-# 🚀 Modernized E-Commerce Platform
+#  Modernized E-Commerce Platform
 
 ![Java](https://img.shields.io/badge/Java-26-orange?style=for-the-badge&logo=java)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1+-brightgreen?style=for-the-badge&logo=spring-boot)
@@ -13,7 +13,7 @@ This project serves as a technical showcase for modern backend engineering, emph
 
 ---
 
-## 🏗 System Architecture
+##  System Architecture
 
 ```mermaid
 graph TD
@@ -103,7 +103,7 @@ Powered by **Spring AI**, the API exposes an intelligent, privacy-first Customer
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### Prerequisites
 - Docker & Docker Compose
@@ -133,7 +133,7 @@ docker-compose up --build -d
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 The core domain logic is framework-agnostic, allowing for sub-millisecond execution of unit tests.
 
